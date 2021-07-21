@@ -20,15 +20,18 @@
 #include "../sample.xpm"
 #endif
 
-// Define a new application type, each program should derive a class from wxApp
-class Main : public wxApp
+// Define a new frame type: this is going to be our main frame
+class MainFrame : public wxFrame
 {
 public:
-	// override base class virtuals
-	// ----------------------------
+	// ctor(s)
+	MainFrame(const wxString& title);
 
-	// this one is called on application startup and is a good place for the app
-	// initialization (doing it here and not in the ctor allows to have an error
-	// return: if OnInit() returns false, the application terminates)
-	virtual bool OnInit() wxOVERRIDE;
+	// event handlers (these functions should _not_ be virtual)
+	void OnQuit(wxCommandEvent& event);
+	void OnAbout(wxCommandEvent& event);
+
+private:
+	// any class wishing to process wxWidgets events must use this macro
+	wxDECLARE_EVENT_TABLE();
 };
