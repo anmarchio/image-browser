@@ -1,6 +1,9 @@
 #pragma once
 
+#include <experimental/filesystem>
+
 #include "wx/wxprec.h"
+#include <experimental/filesystem>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -27,9 +30,13 @@ public:
 	// ctor(s)
 	MainFrame(const wxString& title);
 
+	wxStaticText* resultText;
+
 	// event handlers (these functions should _not_ be virtual)
 	void OnQuit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
+	void StartBrowsing(wxCommandEvent&);
+	int traverseDirTree(std::experimental::filesystem::path source, std::string target);
 
 private:
 	// any class wishing to process wxWidgets events must use this macro
