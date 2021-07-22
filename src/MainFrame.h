@@ -30,7 +30,7 @@ public:
 	// ctor(s)
 	MainFrame(const wxString& title);
 
-	wxStaticText* resultText;
+	wxTextCtrl* resultText;
 
 	// event handlers (these functions should _not_ be virtual)
 	void OnQuit(wxCommandEvent& event);

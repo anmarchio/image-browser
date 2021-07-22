@@ -60,8 +60,8 @@ MainFrame::MainFrame(const wxString& title)
 	startBrowsingBtn->Bind(wxEVT_BUTTON, &MainFrame::StartBrowsing, this);
 	sizer->Add(startBrowsingBtn, wxSizerFlags().Center());
 
-	// Add text
-	resultText = new wxStaticText(this, wxID_ANY, "\nFile Tree");
+	// Add text field
+	resultText = new wxTextCtrl(this, wxID_ANY, "empty\n", wxDefaultPosition, wxSize(400,400), wxTE_MULTILINE);
 	sizer->Add(resultText, wxSizerFlags().Center());
 	
 	SetSizer(sizer);
@@ -121,7 +121,8 @@ int MainFrame::traverseDirTree(std::experimental::filesystem::path source, strin
 		else
 		{
 			cout << file.path() << endl;
-			resultText->SetLabel(file.path().c_str());
+			resultText->AppendText(wxString("\n"));
+			resultText->AppendText(file.path().c_str());
 
 			std::ofstream imageFileList(target + "\\" + DEFAULT_FILE_NAME);
 			if (imageFileList.is_open())
@@ -138,5 +139,7 @@ int MainFrame::traverseDirTree(std::experimental::filesystem::path source, strin
 
 void MainFrame::StartBrowsing(wxCommandEvent& WXUNUSED(event))
 {
-	MainFrame::traverseDirTree(".", ".");
+	string target = ".";
+	resultText->AppendText("Writing to:\n" + target);
+	MainFrame::traverseDirTree(".", target);
 }
