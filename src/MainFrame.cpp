@@ -1,11 +1,14 @@
 #include "Main.h"
 #include "MainFrame.h"
 
-#include <iostream>
 #include <string>
 #include <fstream>
-#include <direct.h>
 #include <experimental/filesystem>
+#include <wx/filedlg.h>
+#include <wx/wfstream.h>
+
+using std::string;
+using std::experimental::filesystem::directory_iterator;
 
 enum
 {
@@ -13,21 +16,22 @@ enum
 	Minimal_About = wxID_ABOUT
 };
 
-// the event tables connect the wxWidgets events with the functions (event
-// handlers) which process them. It can be also done at run-time, but for the
-// simple menu events like this the static method is much simpler.
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_MENU(Minimal_Quit, MainFrame::OnQuit)
 EVT_MENU(Minimal_About, MainFrame::OnAbout)
 wxEND_EVENT_TABLE()
 
+/**
+ * \brief entry frame to the application UI
+ * \param title string displayed in window top bar
+ */
 MainFrame::MainFrame(const wxString& title)
-	: wxFrame(NULL, wxID_ANY, title)
+	: wxFrame(nullptr, wxID_ANY, title)
 {
 	// frame icon
 	SetIcon(wxICON(sample));
+	SetSize(400, 600);
 	
-#if wxUSE_MENUBAR
 	// menu bar
 	wxMenu *fileMenu = new wxMenu;
 
@@ -38,39 +42,48 @@ MainFrame::MainFrame(const wxString& title)
 	fileMenu->Append(Minimal_Quit, "E&xit\tAlt-X", "Quit this program");
 
 	// now append the freshly created menu to the menu bar...
-	wxMenuBar *menuBar = new wxMenuBar();
+	auto *menuBar = new wxMenuBar();
 	menuBar->Append(fileMenu, "&File");
 	menuBar->Append(helpMenu, "&Help");
 
 	// ... and attach this menu bar to the frame
 	wxFrameBase::SetMenuBar(menuBar);
-#else
-	// If menus are not available add a button to access the about box
-	wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* aboutBtn = new wxButton(this, wxID_ANY, "About...");
-	aboutBtn->Bind(wxEVT_BUTTON, &MainFrame::OnAbout, this);
-	sizer->Add(aboutBtn, wxSizerFlags().Center());
-	SetSizer(sizer);
-#endif
 
 	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-	
-	// Add image browser button
-	wxButton* startBrowsingBtn = new wxButton(this, wxID_ANY, "Start Browsing");
-	startBrowsingBtn->Bind(wxEVT_BUTTON, &MainFrame::StartBrowsing, this);
-	sizer->Add(startBrowsingBtn, wxSizerFlags().Center());
 
-	// Add text field
-	resultText = new wxTextCtrl(this, wxID_ANY, "empty\n", wxDefaultPosition, wxSize(400,400), wxTE_MULTILINE);
-	sizer->Add(resultText, wxSizerFlags().Center());
+	// Open source directory dialog
+	auto selectDirectoryBtn = new wxButton(this, wxID_ANY, "Select directory");
+	selectDirectoryBtn->Bind(wxEVT_BUTTON, &MainFrame::OnSelectDirectory, this);
+	sizer->Add(selectDirectoryBtn, wxSizerFlags().Left());
+
+	// Browse dir field
+	selectedDirectory = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition);
+	sizer->Add(selectedDirectory, wxSizerFlags().Left());
+
+	// Open file save dialog
+	auto saveFileBtn = new wxButton(this, wxID_ANY, "Save as");
+	saveFileBtn->Bind(wxEVT_BUTTON, &MainFrame::OnSaveAs, this);
+	sizer->Add(saveFileBtn, wxSizerFlags().Left());
+	
+	// Browse dir field
+	saveFilePath = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition);
+	sizer->Add(saveFilePath, wxSizerFlags().Left());
+	
+	// Start browsing button
+	auto startBrowsingBtn = new wxButton(this, wxID_ANY, "Start Browsing");
+	startBrowsingBtn->Bind(wxEVT_BUTTON, &MainFrame::OnStartBrowsing, this);
+	sizer->Add(startBrowsingBtn, wxSizerFlags().Left());
+
+	// Text output field
+	resultText = new wxTextCtrl(this, wxID_ANY, "Log\n", wxDefaultPosition, wxSize(400,400), wxTE_MULTILINE);
+	sizer->Add(resultText, wxSizerFlags().Left());
 	
 	SetSizer(sizer);
 	
 #if wxUSE_STATUSBAR
-	// create a status bar just for fun (by default with 1 pane only)
 	wxFrameBase::CreateStatusBar(2);
 	wxFrameBase::SetStatusText(wxString::Format("Welcome to %s!", app_name));
-#endif // wxUSE_STATUSBAR
+#endif
 }
 
 
@@ -79,6 +92,7 @@ void MainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 	// true is to force the frame to close
 	Close(true);
 }
+
 
 void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
@@ -98,48 +112,89 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 }
 
 
-using std::cout;
-using std::cin;
-using std::endl;
-using std::string;
-using std::experimental::filesystem::directory_iterator;
+void MainFrame::OnSelectDirectory(wxCommandEvent& WXUNUSED(event))
+{
+	wxDirDialog
+		openDirDialog(NULL, "Choose input directory", "",
+		wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 
-const string DEFAULT_FILE_NAME = "image_index.html";
-const string IMAGE_FILE_FORMATS[7] = { ".bmp", ".gif", ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
+	if (openDirDialog.ShowModal() == wxID_CANCEL)
+		return;
+	selectedDirectory->SetLabel(openDirDialog.GetPath());	
+}
 
-/*
- * Method recursively iterating through directory
+
+void MainFrame::OnSaveAs(wxCommandEvent& WXUNUSED(event))
+{
+	wxFileDialog
+		saveFileDialog(this, _("Save txt file"), "", "",
+			"txt files (*.txt)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	if (saveFileDialog.ShowModal() == wxID_CANCEL)
+		return;
+
+	const wxFileOutputStream output_stream(saveFileDialog.GetPath());
+	if (!output_stream.IsOk())
+	{
+		wxLogError("Cannot save to file '%s'.", saveFileDialog.GetPath());
+		return;
+	}
+
+	saveFilePath->SetLabel(saveFileDialog.GetPath());
+}
+
+/**
+ * \brief traversing file tree recursively
+ * \param source string indicating the directory path to read from
+ * \param target string defining the target txt file to write to
  */
-int MainFrame::traverseDirTree(std::experimental::filesystem::path source, string target)
+int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target) const
 {
 	for (const auto & file : directory_iterator(source))
 	{
 		if (std::experimental::filesystem::is_directory(file))
 		{
-			MainFrame::traverseDirTree(file.path(), target);
+			MainFrame::TraverseDirTree(file.path(), target);
 		}
 		else
 		{
-			cout << file.path() << endl;
-			resultText->AppendText(wxString("\n"));
 			resultText->AppendText(file.path().c_str());
+			resultText->AppendText(wxString("\n"));
 
-			std::ofstream imageFileList(target + "\\" + DEFAULT_FILE_NAME);
+			std::ofstream imageFileList;
+			imageFileList.open(target, std::ios_base::app);			
 			if (imageFileList.is_open())
 			{
 				imageFileList << file.path() << "\n";
 				imageFileList.close();
 			}
-			else cout << "Unable to open file";
+			else
+			{
+				resultText->AppendText(wxString("ERROR: Unable to open file\n"));
+			}
+			imageFileList.close();
 		}
 	}
-
 	return EXIT_SUCCESS;
 }
 
-void MainFrame::StartBrowsing(wxCommandEvent& WXUNUSED(event))
+
+void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
 {
-	string target = ".";
-	resultText->AppendText("Writing to:\n" + target);
-	MainFrame::traverseDirTree(".", target);
+	std::experimental::filesystem::path source = selectedDirectory->GetLabelText().ToStdString();
+	if (source.empty()) source = std::experimental::filesystem::current_path();
+	
+	std::experimental::filesystem::path target = saveFilePath->GetLabelText().ToStdString();
+	if(target.empty()) target = std::experimental::filesystem::current_path();
+	
+	resultText->SetLabelText("Start browsing...");
+	resultText->AppendText(
+		"\n\n"
+		"Browse directory: " 
+		+ source.string() +
+		"\n"
+		"Log file path: "
+		+ target.string() +
+		"\n\n"
+	);
+	MainFrame::TraverseDirTree(source, target);
 }
