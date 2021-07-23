@@ -7,6 +7,8 @@
 #include <wx/filedlg.h>
 #include <wx/wfstream.h>
 
+#include "../../../../wxWidgets-3.1.4/include/wx/defs.h"
+
 using std::string;
 using std::experimental::filesystem::directory_iterator;
 
