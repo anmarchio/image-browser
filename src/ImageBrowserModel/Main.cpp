@@ -5,11 +5,11 @@
 wxIMPLEMENT_APP(Main);
 
 bool Main::OnInit()
-{
+{	
 	if (!wxApp::OnInit())
 		return false;
 
-	MainFrame *frame = new MainFrame("Tiny Image Browser");
+	frame = new MainFrame(app_name);
 
 	frame->Show(true);
 

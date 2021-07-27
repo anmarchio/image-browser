@@ -20,12 +20,14 @@
 #include "../sample.xpm"
 #endif
 
+#include "MainFrame.h"
 const std::string app_name = "Tiny Image Browser";
 
 // Define a new application type, each program should derive a class from wxApp
 class Main : public wxApp
 {
 public:
+	MainFrame *frame;
 	// override base class virtuals
 	// ----------------------------
 

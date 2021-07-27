@@ -46,24 +46,22 @@ In order to work with paramTuner in Visual Studio you will need VS 2019, the VS 
 
 ## Run Unittests
 
-### Change configurations
+### Configurations in the Google Test Framework
 
-In Project `ImageBrowserModel`:
-* In the solution explorer click right and select `Project Properties`
-* In `Configuration > General` change `Destination Application` to `static library (.lib)`
-
-In Project `ImageBrowserUnitTests`:
-* In `Configuration > Linker > Additional Library Directories` add `src\Debug` (or whichever execution path)
-* `Configuration > Linker > Additional Dependencies` choose `ImageBrowserModel.lib`
-
-### Stackoverflow Post
-
-https://stackoverflow.com/questions/19886397/how-can-i-solve-the-error-lnk2019-unresolved-external-symbol-function
+Build the main project as `static library (.lib), according to: https://stackoverflow.com/questions/19886397/how-can-i-solve-the-error-lnk2019-unresolved-external-symbol-function
 
 ```
-One option would be to include function.cpp in your UnitTest1 project, but that may not be the most ideal solution structure. The short answer to your problem is that when building your UnitTest1 project, the compiler and linker have no idea that function.cpp exists, and also have nothing to link that contains a definition of multiple. A way to fix this is making use of linking libraries.
-Since your unit tests are in a different project, I'm assuming your intention is to make that project a standalone unit-testing program. With the functions you are testing located in another project, it's possible to build that project to either a dynamically or statically linked library. Static libraries are linked to other programs at build time, and have the extension .lib, and dynamic libraries are linked at runtime, and have the extension .dll. For my answer I'll prefer static libraries.
 You can turn your first program into a static library by changing it in the projects properties. There should be an option under the General tab where the project is set to build to an executable (.exe). You can change this to .lib. The .lib file will build to the same place as the .exe.
+
 In your UnitTest1 project, you can go to its properties, and under the Linker tab in the category Additional Library Directories, add the path to which MyProjectTest builds. Then, for Additional Dependencies under the Linker - Input tab, add the name of your static library, most likely MyProjectTest.lib.
-That should allow your project to build. Note that by doing this, MyProjectTest will not be a standalone executable program unless you change its build properties as needed, which would be less than ideal
+
+That should allow your project to build. Note that by doing this, MyProjectTest will not be a standalone executable program unless you change its build properties as needed, which would be less than ideal.
 ```
+
+#### In Project `ImageBrowserTests`:
+
+* Make sure, the main project `ImageBrowserModel` is referenced in `ImageBrowserTests`
+* In the solution explorer click right on `ImageBrowserTests` and select `Project Properties`
+* Make sure to add `C:\wxWidgets-3.1.3\wxwidgets.props` as property (see section `Using wxWidgets`)
+* Compile the test project (`Right click > Rebuild`)
+* Run tests using `Test > Execute > All Tests`
