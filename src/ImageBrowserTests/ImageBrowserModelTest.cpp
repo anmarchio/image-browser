@@ -27,9 +27,9 @@ protected:
 	}
 };
 
-TEST_F(GuiTest, CopyTest)
+TEST_F(GuiTest, TraverseFileTreeTest)
 {
-	const std::string IMAGE_PATH_LIST = { "arrow_right.jpg\nhexagram.jpg\nstar.jpg" };
+	const std::string IMAGE_PATH_LIST = { "Assets\\arrow_right.jpg\nAssets\\hexagram.jpg\nAssets\\star.jpg\n" };
 
 	app->frame->selectedDirectory->Clear();
 
@@ -41,17 +41,18 @@ TEST_F(GuiTest, CopyTest)
 
 	EXPECT_TRUE(exists(target));
 
-	std::ifstream samplefile("example.txt");
+	std::ifstream samplefile("test.txt");
 	std::string line;
 	std::string content = "";
 	if (samplefile.is_open())
 	{
 		while (getline(samplefile, line))
 		{
-			content.append(line);
+			content.append(line + "\n");
 		}
 		samplefile.close();
 	}
+	std::remove("test.txt");
 	EXPECT_EQ(content, IMAGE_PATH_LIST);
 }
 
