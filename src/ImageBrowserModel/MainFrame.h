@@ -30,7 +30,7 @@ public:
 	void OnSelectDirectory(wxCommandEvent&);
 	void OnSaveAs(wxCommandEvent&);
 	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target) const;
-	void OnStartBrowsing(wxCommandEvent&);
+	void OnStartBrowsing(wxCommandEvent&) const;
 
 private:
 	wxDECLARE_EVENT_TABLE();

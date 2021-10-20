@@ -21,6 +21,7 @@ EVT_MENU(Minimal_Quit, MainFrame::OnQuit)
 EVT_MENU(Minimal_About, MainFrame::OnAbout)
 wxEND_EVENT_TABLE()
 
+
 /**
  * \brief entry frame to the application UI
  * \param title string displayed in window top bar
@@ -89,7 +90,6 @@ MainFrame::MainFrame(const wxString& title)
 
 void MainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
-	// true is to force the frame to close
 	Close(true);
 }
 
@@ -142,6 +142,7 @@ void MainFrame::OnSaveAs(wxCommandEvent& WXUNUSED(event))
 	saveFilePath->SetLabel(saveFileDialog.GetPath());
 }
 
+
 /**
  * \brief traversing file tree recursively
  * \param source string indicating the directory path to read from
@@ -178,7 +179,7 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 }
 
 
-void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event)) const
 {
 	std::experimental::filesystem::path source = selectedDirectory->GetLabelText().ToStdString();
 	if (source.empty()) source = std::experimental::filesystem::current_path();
