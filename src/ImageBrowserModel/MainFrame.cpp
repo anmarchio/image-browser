@@ -148,7 +148,7 @@ void MainFrame::OnSaveAs(wxCommandEvent& WXUNUSED(event))
  * \param source string indicating the directory path to read from
  * \param target string defining the target txt file to write to
  */
-int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target) const
+int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target)
 {
 	for (const auto & file : directory_iterator(source))
 	{
@@ -179,7 +179,7 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 }
 
 
-void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event)) const
+void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
 {
 	std::experimental::filesystem::path source = selectedDirectory->GetLabelText().ToStdString();
 	if (source.empty()) source = std::experimental::filesystem::current_path();

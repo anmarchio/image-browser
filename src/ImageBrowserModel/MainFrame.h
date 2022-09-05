@@ -29,8 +29,8 @@ public:
 	void OnAbout(wxCommandEvent& event);
 	void OnSelectDirectory(wxCommandEvent&);
 	void OnSaveAs(wxCommandEvent&);
-	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target) const;
-	void OnStartBrowsing(wxCommandEvent&) const;
+	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target);
+	void OnStartBrowsing(wxCommandEvent&);
 
 private:
 	wxDECLARE_EVENT_TABLE();

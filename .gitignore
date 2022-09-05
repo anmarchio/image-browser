@@ -15,8 +15,6 @@
 /src/x64/Debug/src.log
 /src/x64/Debug/pch.obj
 /src/x64/Debug/Main.obj
-/src/x64/Debug
-/src/image_index.html
 /src/Debug/vc141.pdb
 /src/Debug/vc141.idb
 /src/Debug/src.tlog/src.lastbuildstate
@@ -33,7 +31,6 @@
 /src/Debug/src.exe
 /src/Debug/pch.obj
 /src/Debug/Main.obj
-/src/Debug
 /src/.vs/src/v15/ipch/AutoPCH/e903c149a86fb339/MAIN.ipch
 /src/.vs/src/v15/ipch/AutoPCH/e903c149a86fb339
 /src/.vs/src/v15/ipch/AutoPCH/7fe818b1b0ca26f9/PCH.ipch
@@ -42,7 +39,6 @@
 /src/.vs/src/v15/Browse.VC.db
 /src/.vs/src/v15/.suo
 /src/.vs/src/v15
-/src
 /.vs/src/v15/ipch/AutoPCH/b626cd1f493be39a/PCH.ipch
 /.vs/src/v15/ipch/AutoPCH/b626cd1f493be39a
 /.vs/src/v15/ipch/AutoPCH/51d6df659108d572/MAIN.ipch
@@ -61,4 +57,3 @@
 /x64/Debug/src.pdb
 /x64/Debug/src.ilk
 /x64/Debug/src.exe
-/x64/Debug
