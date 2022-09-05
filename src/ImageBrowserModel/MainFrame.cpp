@@ -1,8 +1,11 @@
 #include "Main.h"
 #include "MainFrame.h"
 
+#include <iostream>
 #include <string>
+#include <regex>
 #include <fstream>
+#include <opencv2/opencv.hpp>
 #include <experimental/filesystem>
 #include <wx/filedlg.h>
 #include <wx/wfstream.h>
@@ -143,6 +146,46 @@ void MainFrame::OnSaveAs(wxCommandEvent& WXUNUSED(event))
 }
 
 
+wxString MainFrame::checkForImage(std::experimental::filesystem::path source)
+{
+	// Regex to check valid image file extension.
+	const std::regex pattern("[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|tif|JPG|JPEG|PNG|GIF|TIF)$");
+
+	// If the image file extension
+	// is empty return false
+	if (source.empty())
+	{
+		return "none";
+	}
+	// Return true if the image file extension
+	// matched the ReGex
+	if (std::regex_match(source.generic_string(), pattern))
+	{
+		return wxString("image");
+	}
+
+	return wxString("any");
+}
+
+wxString MainFrame::checkImageColorDepth(std::experimental::filesystem::path source)
+{
+	// https://stackoverflow.com/questions/24190717/how-to-find-81632-bit-image-in-opencv
+	cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_UNCHANGED);
+	switch (src.depth()) {
+		case CV_8U: 
+			return wxString("8 bit"); // 8 bit unsigned
+		case CV_16U: 
+			return wxString("16 bit"); // 16 bit unsigned
+		case CV_32S: 
+			return wxString("32 bit"); // 32 bit unsigned
+		case CV_32F: 
+			return wxString("float"); // float
+		case CV_64F: 
+			return wxString("double"); // double
+	}
+	return wxString("none");
+}
+
 /**
  * \brief traversing file tree recursively
  * \param source string indicating the directory path to read from
@@ -159,6 +202,10 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 		else
 		{
 			resultText->AppendText(file.path().c_str());
+			resultText->AppendText(wxString(";"));
+			resultText->AppendText(checkForImage(file.path()));
+			resultText->AppendText(wxString(";"));
+			resultText->AppendText(checkImageColorDepth(file.path()));
 			resultText->AppendText(wxString("\n"));
 
 			std::ofstream imageFileList;

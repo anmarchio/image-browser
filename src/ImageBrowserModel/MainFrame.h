@@ -33,5 +33,8 @@ public:
 	void OnStartBrowsing(wxCommandEvent&);
 
 private:
+	bool searchImagesOnly = true;
+	wxString checkForImage(std::experimental::filesystem::path source);
+	wxString checkImageColorDepth(std::experimental::filesystem::path source);
 	wxDECLARE_EVENT_TABLE();
 };

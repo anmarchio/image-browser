@@ -28,6 +28,15 @@ https://www.youtube.com/watch?v=sRhoZcNpMb4&ab_channel=CahootsMalone
 1. Copy `minimal.cpp` from `C:\wxWidgets-3.1.3\samples\minimal` to `Source Files` in current project
 1. Try to build the code (it will fail!)
 
+### Using OpenCV
+
+- Get and Download OpenCV: https://github.com/opencv/opencv
+- in VS, right click on project explorer, select `Properties`
+- then select `VC++ Directories`
+- to `Include Directories` add: `$(OPENCVDIR)\opencv\build\install\include`
+- to `Library Directories` add: `$(OPENCVDIR)\opencv\build\install\x64\<YOUR_VS_VERSION>\lib`
+- in Linker > Input > Additional Dependencies` add the following string: `opencv_worldXXXd.lib`; `XXX` should be replaced with your custom opencv version
+
 ### Configure Project Properties
 
 1. Right click in Solution Manager on project, select `Properties`
