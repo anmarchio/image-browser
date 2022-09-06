@@ -34,7 +34,7 @@ public:
 
 private:
 	bool searchImagesOnly = true;
+	wxString checkImageSizeAndDepth(std::experimental::filesystem::path source);
 	wxString checkForImage(std::experimental::filesystem::path source);
-	wxString checkImageColorDepth(std::experimental::filesystem::path source);
 	wxDECLARE_EVENT_TABLE();
 };

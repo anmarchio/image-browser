@@ -167,23 +167,46 @@ wxString MainFrame::checkForImage(std::experimental::filesystem::path source)
 	return wxString("any");
 }
 
-wxString MainFrame::checkImageColorDepth(std::experimental::filesystem::path source)
-{
-	// https://stackoverflow.com/questions/24190717/how-to-find-81632-bit-image-in-opencv
+wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path source)
+{	
+	/*
+	 https://answers.opencv.org/question/60753/counting-black-white-pixels-with-a-threshold/
+	 (...)
+	  do not know enough about your approach, but you can use threshold two times: 
+	  one for almost white, and one for almost black, then use countNonZero to get the number of white/black pixels. 
+	  Be careful to put on white all the pixels that you want (make white the almost black pixels, so you can count non zeros).
+	*/
+	// String: width;height;depth\n
+	wxString result;
+	// Load and read image
 	cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_UNCHANGED);
+	result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
+	cv::Mat black;
+	cv::threshold(src, black, 0, 1, cv::THRESH_BINARY);
+	int countBlacks = cv::countNonZero(black);
+	cv::Mat white;
+	cv::threshold(src, white, 0, 1, cv::THRESH_BINARY_INV);
+	int countWhites = cv::countNonZero(white);
+	
+	if ((src.cols * src.rows) == (countBlacks + countWhites)) {
+		// if there are only pixels with values 0 and 255
+		// we can assume the image contains only binary information
+		return result + wxString("binary");
+	}
+
 	switch (src.depth()) {
 		case CV_8U: 
-			return wxString("8 bit"); // 8 bit unsigned
+			return result + wxString("8 bit"); // 8 bit unsigned
 		case CV_16U: 
-			return wxString("16 bit"); // 16 bit unsigned
+			return result + wxString("16 bit"); // 16 bit unsigned
 		case CV_32S: 
-			return wxString("32 bit"); // 32 bit unsigned
+			return result + wxString("32 bit"); // 32 bit unsigned
 		case CV_32F: 
-			return wxString("float"); // float
+			return result + wxString("float"); // float
 		case CV_64F: 
-			return wxString("double"); // double
+			return result + wxString("double"); // double
 	}
-	return wxString("none");
+	return result + wxString("none");
 }
 
 /**
@@ -193,6 +216,7 @@ wxString MainFrame::checkImageColorDepth(std::experimental::filesystem::path sou
  */
 int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target)
 {
+	int iteration = 0;
 	for (const auto & file : directory_iterator(source))
 	{
 		if (std::experimental::filesystem::is_directory(file))
@@ -201,18 +225,21 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 		}
 		else
 		{
-			resultText->AppendText(file.path().c_str());
-			resultText->AppendText(wxString(";"));
-			resultText->AppendText(checkForImage(file.path()));
-			resultText->AppendText(wxString(";"));
-			resultText->AppendText(checkImageColorDepth(file.path()));
-			resultText->AppendText(wxString("\n"));
+			resultText->AppendText(file.path().c_str() + wxString(";") + checkForImage(file.path()));
 
 			std::ofstream imageFileList;
-			imageFileList.open(target, std::ios_base::app);			
+			imageFileList.open(target, std::ios_base::app);				
 			if (imageFileList.is_open())
 			{
-				imageFileList << file.path() << "\n";
+				if (iteration == 0) {
+					// write header
+					imageFileList << "File;Type;Width;Height;ColorDepth\n";
+				}
+				wxString isImage = checkForImage(file.path());
+				if(isImage == "image")
+					imageFileList << file.path() << ";" << isImage << ";" << checkImageSizeAndDepth(file.path()) << "\n";
+				else
+					imageFileList << file.path() << ";" << "any" << ";;;\n";
 				imageFileList.close();
 			}
 			else
@@ -220,6 +247,7 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 				resultText->AppendText(wxString("ERROR: Unable to open file\n"));
 			}
 			imageFileList.close();
+			iteration++;
 		}
 	}
 	return EXIT_SUCCESS;
