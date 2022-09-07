@@ -149,7 +149,7 @@ void MainFrame::OnSaveAs(wxCommandEvent& WXUNUSED(event))
 wxString MainFrame::checkForImage(std::experimental::filesystem::path source)
 {
 	// Regex to check valid image file extension.
-	const std::regex pattern("[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|tif|JPG|JPEG|PNG|GIF|TIF)$");
+	const std::regex pattern("[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|tif|bmp|JPG|JPEG|PNG|GIF|TIF|BMP)$");
 
 	// If the image file extension
 	// is empty return false
@@ -179,33 +179,42 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	// String: width;height;depth\n
 	wxString result;
 	// Load and read image
-	cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_UNCHANGED);
-	result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
-	cv::Mat black;
-	cv::threshold(src, black, 0, 1, cv::THRESH_BINARY);
-	int countBlacks = cv::countNonZero(black);
-	cv::Mat white;
-	cv::threshold(src, white, 0, 1, cv::THRESH_BINARY_INV);
-	int countWhites = cv::countNonZero(white);
-	
-	if ((src.cols * src.rows) == (countBlacks + countWhites)) {
-		// if there are only pixels with values 0 and 255
-		// we can assume the image contains only binary information
-		return result + wxString("binary");
+	try {
+		cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_UNCHANGED);
+		cv::Mat dst;
+		cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
+		result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
+		cv::Mat black;
+		cv::threshold(dst, black, 0, 1, cv::THRESH_BINARY);
+		int countBlacks = cv::countNonZero(black);
+		cv::Mat white;
+		cv::threshold(dst, white, 0, 1, cv::THRESH_BINARY_INV);
+		int countWhites = cv::countNonZero(white);
+
+		if ((src.cols * src.rows) == (countBlacks + countWhites)) {
+			// if there are only pixels with values 0 and 255
+			// we can assume the image contains only binary information
+			return result + wxString("binary");
+		}
+
+		switch (src.depth()) {
+		case CV_8U:
+			return result + wxString("8 bit"); // 8 bit unsigned
+		case CV_16U:
+			return result + wxString("16 bit"); // 16 bit unsigned
+		case CV_32S:
+			return result + wxString("32 bit"); // 32 bit unsigned
+		case CV_32F:
+			return result + wxString("float"); // float
+		case CV_64F:
+			return result + wxString("double"); // double
+		}
+	}
+	catch (const char* msg) {
+		std::cerr << msg << std::endl;
+		return wxString("err;err;") + wxString(msg);
 	}
 
-	switch (src.depth()) {
-		case CV_8U: 
-			return result + wxString("8 bit"); // 8 bit unsigned
-		case CV_16U: 
-			return result + wxString("16 bit"); // 16 bit unsigned
-		case CV_32S: 
-			return result + wxString("32 bit"); // 32 bit unsigned
-		case CV_32F: 
-			return result + wxString("float"); // float
-		case CV_64F: 
-			return result + wxString("double"); // double
-	}
 	return result + wxString("none");
 }
 
@@ -225,7 +234,8 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 		}
 		else
 		{
-			resultText->AppendText(file.path().c_str() + wxString(";") + checkForImage(file.path()));
+			std::cout << file.path().c_str();
+			resultText->AppendText(file.path().c_str() + wxString(";") + checkForImage(file.path()) + "\n");
 
 			std::ofstream imageFileList;
 			imageFileList.open(target, std::ios_base::app);				
