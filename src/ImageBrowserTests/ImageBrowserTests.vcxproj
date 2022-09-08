@@ -48,6 +48,10 @@
     <IncludePath>C:\dev\image-browser\src\Debug;$(IncludePath)</IncludePath>
     <LibraryPath>C:\dev\image-browser\src\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(OPENCVDIR)\opencv\build\install\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(OPENCVDIR)\opencv\build\install\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
   </ItemGroup>
@@ -65,7 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ImageBrowserModel\ImageBrowserModel.vcxproj">
-      <Project>{edb1cd1e-d736-4ee5-bb14-66e47b87546b}</Project>
+      <Project>{4ed354ec-7699-48e0-802e-00b6b1caedc5}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemDefinitionGroup />
@@ -104,6 +108,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>C:\dev\image-browser\src\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ImageBrowserModel.lib;opencv_world453d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

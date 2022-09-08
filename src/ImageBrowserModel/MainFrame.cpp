@@ -180,18 +180,30 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	wxString result;
 	// Load and read image
 	try {
-		cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_UNCHANGED);
+		cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
 		cv::Mat dst;
 		cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
+				
+		//cv::imshow("dst", dst);
+		//int v = cv::waitKey(0);
+		
 		result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
+ 		
 		cv::Mat black;
-		cv::threshold(dst, black, 0, 1, cv::THRESH_BINARY);
+		cv::threshold(dst, black, 254, 255, cv::THRESH_BINARY_INV);
 		int countBlacks = cv::countNonZero(black);
-		cv::Mat white;
-		cv::threshold(dst, white, 0, 1, cv::THRESH_BINARY_INV);
+
+		//cv::imshow("black", black);
+		//int v = cv::waitKey(0);
+
+ 		cv::Mat white;
+		cv::threshold(dst, white, 254, 255, cv::THRESH_BINARY);
 		int countWhites = cv::countNonZero(white);
 
-		if ((src.cols * src.rows) == (countBlacks + countWhites)) {
+		//cv::imshow("white", white);
+		//int l = cv::waitKey(0);
+		
+		if ((src.cols * src.rows) == (countBlacks + countWhites) && !(countBlacks == (src.cols * src.rows) || countWhites == 0)) {
 			// if there are only pixels with values 0 and 255
 			// we can assume the image contains only binary information
 			return result + wxString("binary");

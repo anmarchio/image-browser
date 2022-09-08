@@ -75,10 +75,18 @@ In your UnitTest1 project, you can go to its properties, and under the Linker ta
 That should allow your project to build. Note that by doing this, MyProjectTest will not be a standalone executable program unless you change its build properties as needed, which would be less than ideal.
 ```
 
-#### In Project `ImageBrowserTests`:
+### In `ImageBrowserModel`:
+
+* build project as `static library (.lib)`
+
+### In Project `ImageBrowserTests`:
 
 * Make sure, the main project `ImageBrowserModel` is referenced in `ImageBrowserTests`
 * In the solution explorer click right on `ImageBrowserTests` and select `Project Properties`
 * Make sure to add `C:\wxWidgets-3.1.3\wxwidgets.props` as property (see section `Using wxWidgets`)
+* Add OpenCV references to:
+  * to Include Directories add: $(OPENCVDIR)\opencv\build\install\include
+  * to Library Directories add: $(OPENCVDIR)\opencv\build\install\x64\<YOUR_VS_VERSION>\lib
+  * in Linker > Input > Additional Dependencies add the following string: opencv_worldXXXd.lib; XXX should be replaced with your custom opencv version
 * Compile the test project (`Right click > Rebuild`)
 * Run tests using `Test > Execute > All Tests`

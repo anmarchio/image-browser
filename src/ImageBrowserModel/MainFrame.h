@@ -31,10 +31,10 @@ public:
 	void OnSaveAs(wxCommandEvent&);
 	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target);
 	void OnStartBrowsing(wxCommandEvent&);
+	wxString checkImageSizeAndDepth(std::experimental::filesystem::path source);
 
 private:
 	bool searchImagesOnly = true;
-	wxString checkImageSizeAndDepth(std::experimental::filesystem::path source);
 	wxString checkForImage(std::experimental::filesystem::path source);
 	wxDECLARE_EVENT_TABLE();
 };
