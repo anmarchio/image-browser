@@ -42,6 +42,9 @@ Before setting up a new OpenCV configuration, check your system for existing fol
 - to `Include Directories` add: `$(OPENCVDIR)\opencv\build\install\include`
 - to `Library Directories` add: `$(OPENCVDIR)\opencv\build\install\x64\<YOUR_VS_VERSION>\lib`
 - in `Linker > Input > Additional Dependencies` add the following string: `opencv_worldXXXd.lib`; `XXX` should be replaced with your custom opencv version
+- Add OpenCV bin to system path: `System Settings > System > Environment Variables`
+- insert new variable `%OPENCVBIN% = %OPENCVDIR%\opencv\build\install\x64\vc15\bin`
+- click `edit` on `PATH` and insert: `%OPENCVBIN%`
 
 ### Configure Project Properties
 
