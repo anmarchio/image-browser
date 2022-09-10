@@ -46,6 +46,12 @@ Before setting up a new OpenCV configuration, check your system for existing fol
 - insert new variable `%OPENCVBIN% = %OPENCVDIR%\opencv\build\install\x64\vc15\bin`
 - click `edit` on `PATH` and insert: `%OPENCVBIN%`
 
+### Workaround if opencv_world cannot be found
+
+- Sometimes, when running the executable, an error message may pop up saying ``
+- in this case right click `<PROJECT> > Properties > Debugging`
+- then add `PATH = <OPENCV_PATH>\build\x64\vc15\bin;`
+
 ### Configure Project Properties
 
 1. Right click in Solution Manager on project, select `Properties`
