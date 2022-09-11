@@ -167,6 +167,7 @@ wxString MainFrame::checkForImage(std::experimental::filesystem::path source)
 	return wxString("any");
 }
 
+
 wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path source)
 {	
 	/*
@@ -235,9 +236,9 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
  * \param source string indicating the directory path to read from
  * \param target string defining the target txt file to write to
  */
+int ITERATION = 0;
 int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target)
 {
-	int iteration = 0;
 	for (const auto & file : directory_iterator(source))
 	{
 		if (std::experimental::filesystem::is_directory(file))
@@ -253,8 +254,11 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 			imageFileList.open(target, std::ios_base::app);				
 			if (imageFileList.is_open())
 			{
-				if (iteration == 0) {
+				if (ITERATION == 0) {
 					// write header
+					auto start = std::chrono::system_clock::now();
+					std::time_t start_time = std::chrono::system_clock::to_time_t(start);
+					imageFileList << "[started" << std::ctime(&start_time) << "]\n";
 					imageFileList << "File;Type;Width;Height;ColorDepth\n";
 				}
 				wxString isImage = checkForImage(file.path());
@@ -269,7 +273,7 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 				resultText->AppendText(wxString("ERROR: Unable to open file\n"));
 			}
 			imageFileList.close();
-			iteration++;
+			ITERATION++;
 		}
 	}
 	return EXIT_SUCCESS;
@@ -294,5 +298,6 @@ void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
 		+ target.string() +
 		"\n\n"
 	);
+	ITERATION = 0;
 	MainFrame::TraverseDirTree(source, target);
 }
