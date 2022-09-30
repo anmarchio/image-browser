@@ -179,53 +179,72 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	*/
 	// String: width;height;depth\n
 	wxString result;
-	// Load and read image
+	// Initialize variables
+	cv::Mat src;
+	cv::Mat dst;
+	cv::Mat black;
+	cv::Mat white;
 	try {
-		cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
-		cv::Mat dst;
-		cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
+		// Load and read image
+		src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
+		if(src.depth() != CV_8U)
+			cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
 				
 		//cv::imshow("dst", dst);
 		//int v = cv::waitKey(0);
-		
 		result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
- 		
-		cv::Mat black;
+ 				
 		cv::threshold(dst, black, 254, 255, cv::THRESH_BINARY_INV);
 		int countBlacks = cv::countNonZero(black);
-
+	
 		//cv::imshow("black", black);
 		//int v = cv::waitKey(0);
-
- 		cv::Mat white;
-		cv::threshold(dst, white, 254, 255, cv::THRESH_BINARY);
+	
+	 	cv::threshold(dst, white, 254, 255, cv::THRESH_BINARY);
 		int countWhites = cv::countNonZero(white);
 
 		//cv::imshow("white", white);
 		//int l = cv::waitKey(0);
+
+		// Store save values and free image space
+		int numberOfRows = src.rows;
+		int numberOfCols = src.cols;
+		int depth = src.depth();
+		black.release();
+		white.release();
+		dst.release();
+		src.release();
 		
-		if ((src.cols * src.rows) == (countBlacks + countWhites) && !(countBlacks == (src.cols * src.rows) || countWhites == 0)) {
+		if ((numberOfCols * numberOfRows) == (countBlacks + countWhites) && !(countBlacks == (numberOfCols * numberOfRows) || countWhites == 0)) {
 			// if there are only pixels with values 0 and 255
 			// we can assume the image contains only binary information
 			return result + wxString("binary");
 		}
 
-		switch (src.depth()) {
-		case CV_8U:
-			return result + wxString("8 bit"); // 8 bit unsigned
-		case CV_16U:
-			return result + wxString("16 bit"); // 16 bit unsigned
-		case CV_32S:
-			return result + wxString("32 bit"); // 32 bit unsigned
-		case CV_32F:
-			return result + wxString("float"); // float
-		case CV_64F:
-			return result + wxString("double"); // double
+		switch (depth) {
+			case CV_8U:
+				return result + wxString("8 bit"); // 8 bit unsigned
+			case CV_16U:
+				return result + wxString("16 bit"); // 16 bit unsigned
+			case CV_32S:
+				return result + wxString("32 bit"); // 32 bit unsigned
+			case CV_32F:
+				return result + wxString("float"); // float
+			case CV_64F:
+				return result + wxString("double"); // double
 		}
 	}
-	catch (const char* msg) {
-		std::cerr << msg << std::endl;
-		return wxString("err;err;") + wxString(msg);
+	catch (const std::exception& e)
+	{
+		std::cout << " a standard exception was caught, with message '"
+			<< e.what() << "'\n";
+		black.release();
+		white.release();
+		dst.release();
+		src.release();
+		// Remove newline characters from string in C++	
+		std::string mErrWithoutNewline = std::regex_replace(e.what(), std::basic_regex<char>("\\r\\n|\\r|\\n"), "");
+		return wxString("err;err;") + wxString(mErrWithoutNewline);
 	}
 
 	return result + wxString("none");
