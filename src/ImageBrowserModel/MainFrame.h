@@ -2,6 +2,7 @@
 #include <experimental/filesystem>
 #include "wx/wxprec.h"
 #include <experimental/filesystem>
+#include <opencv2/opencv.hpp>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -23,15 +24,18 @@ public:
 	wxTextCtrl* selectedDirectory;
 	wxTextCtrl* saveFilePath;
 	wxTextCtrl* resultText;
+	wxCheckBox* checkImageSizeAndDepthChkbx;
 	int OnFileSaveDialog;
 
 	void OnQuit(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnSelectDirectory(wxCommandEvent&);
 	void OnSaveAs(wxCommandEvent&);
-	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target);
+	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target, bool isCheckImageSizeAndDepth);
 	void OnStartBrowsing(wxCommandEvent&);
+	void free_image_space(cv::Mat& black, cv::Mat& white, cv::Mat& dst, cv::Mat& src);
 	wxString checkImageSizeAndDepth(std::experimental::filesystem::path source);
+
 
 private:
 	bool searchImagesOnly = true;
