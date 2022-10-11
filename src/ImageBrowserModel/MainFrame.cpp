@@ -108,7 +108,7 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 		"\n"
 		"This version of %s is\n"
 		"running under %s.",
-		wxVERSION_STRING,
+		app_name,
 		app_name,
 		wxGetOsDescription()
 	), 
