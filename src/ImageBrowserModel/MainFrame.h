@@ -33,7 +33,6 @@ public:
 	void OnSaveAs(wxCommandEvent&);
 	int TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target, bool isCheckImageSizeAndDepth);
 	void OnStartBrowsing(wxCommandEvent&);
-	void free_image_space(cv::Mat& black, cv::Mat& white, cv::Mat& dst, cv::Mat& src);
 	wxString checkImageSizeAndDepth(std::experimental::filesystem::path source);
 
 

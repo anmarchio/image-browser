@@ -171,17 +171,9 @@ wxString MainFrame::checkForImage(std::experimental::filesystem::path source)
 }
 
 
-void MainFrame::free_image_space(cv::Mat & black, cv::Mat & white, cv::Mat & dst, cv::Mat & src)
-{	
-	black.release();
-	white.release();
-	dst.release();
-	src.release();
-}
-
-
 wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path source)
-{	
+{
+	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	/*
 	 https://answers.opencv.org/question/60753/counting-black-white-pixels-with-a-threshold/
 	 (...)
@@ -204,9 +196,11 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	try {
 		// Load and read image
 		src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
-		if(src.depth() != CV_8U)
+		if (src.depth() != CV_8U)
 			cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
-				
+		else
+			dst = src;
+		
 		//cv::imshow("dst", dst);
 		//int v = cv::waitKey(0);
 		result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
@@ -218,8 +212,11 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 		//int v = cv::waitKey(0);
 	
 	 	cv::threshold(dst, white, 254, 255, cv::THRESH_BINARY);
+		dst.release();
 		countWhites = cv::countNonZero(white);
-
+		
+		black.release();
+		white.release();
 		//cv::imshow("white", white);
 		//int l = cv::waitKey(0);
 
@@ -227,8 +224,8 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 		numberOfRows = src.rows;
 		numberOfCols = src.cols;
 		depth = src.depth();
-		free_image_space(black, white, dst, src);
-		
+		src.release();
+
 		if ((numberOfCols * numberOfRows) == (countBlacks + countWhites) && !(countBlacks == (numberOfCols * numberOfRows) || countWhites == 0)) {
 			// if there are only pixels with values 0 and 255
 			// we can assume the image contains only binary information
@@ -252,14 +249,37 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	{
 		std::cout << " a standard exception was caught, with message '"
 			<< e.what() << "'\n";
-		free_image_space(black, white, dst, src);
 		// Remove newline characters from string in C++	
 		std::string mErrWithoutNewline = std::regex_replace(e.what(), std::basic_regex<char>("\\r\\n|\\r|\\n"), "");
 		return wxString("err;err;") + wxString(mErrWithoutNewline);
 	}
-
+	
 	return result + wxString("none");
 }
+
+
+std::string getCTime() {
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+	return std::ctime(&now_time);
+}
+
+
+std::string insertHeader() {
+	std::string header = "---\nstarted " + 
+		getCTime() + 
+		"---\n";
+	header += "File;Type;Width;Height;ColorDepth\n";
+	return header;
+}
+
+
+std::string insertFooter() {
+	return "---------\nterminated " +
+		getCTime() + 
+		"---------\n";
+}
+
 
 /**
  * \brief traversing file tree recursively
@@ -269,6 +289,18 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 int ITERATION = 0;
 int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target, bool isCheckImageSizeAndDepth)
 {
+	if (ITERATION % 1000 == 0) {
+		resultText->AppendText("Scanned " + std::to_string(ITERATION) + " images ...\n");
+	}
+	
+	/* 	  
+	 * ---------
+	 * Uncomment for debugging purposes	
+	 * ---------
+	*/
+	//if (ITERATION > 3000)
+	//	std::cout << "BREAKPOINT AT ITERATIONS: " << ITERATION;
+	
 	for (const auto & file : directory_iterator(source))
 	{
 		if (std::experimental::filesystem::is_directory(file))
@@ -278,18 +310,17 @@ int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::
 		else
 		{
 			std::cout << file.path().c_str();
-			resultText->AppendText(file.path().c_str() + wxString(";") + checkForImage(file.path()) + "\n");
+			
+			// Display only if running without reading image details
+			if (!isCheckImageSizeAndDepth)
+				resultText->AppendText(file.path().c_str() + wxString(";") + checkForImage(file.path()) + "\n");
 
 			std::ofstream imageFileList;
 			imageFileList.open(target, std::ios_base::app);				
 			if (imageFileList.is_open())
 			{
 				if (ITERATION == 0) {
-					// write header
-					auto start = std::chrono::system_clock::now();
-					std::time_t start_time = std::chrono::system_clock::to_time_t(start);
-					imageFileList << "---\nstarted " << std::ctime(&start_time) << "---\n";
-					imageFileList << "File;Type;Width;Height;ColorDepth\n";
+					imageFileList << insertHeader();
 				}
 				wxString isImage = checkForImage(file.path());
 				if(isImage == "image")
@@ -327,12 +358,12 @@ void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
 	resultText->SetLabelText("Start browsing...");
 	resultText->AppendText(
 		"\n\n"
-		"Browse directory: " 
+		"Browse directory:\n" 
 		+ source.string() +
-		"\n"
-		"Log file path: "
+		"\n---------\n"
+		"Log file path:\n"
 		+ target.string() +
-		"\n\n"
+		"\n---------\n\n"
 	);
 	ITERATION = 0;
 	MainFrame::TraverseDirTree(source, target, isCheckImageSizeAndDepth);
@@ -340,8 +371,6 @@ void MainFrame::OnStartBrowsing(wxCommandEvent& WXUNUSED(event))
 	// Write footer
 	std::ofstream imageFileList;
 	imageFileList.open(target, std::ios_base::app);
-	auto end = std::chrono::system_clock::now();
-	std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-	imageFileList << "---\nterminated " << std::ctime(&end_time) << "---\n";
+	imageFileList << insertFooter();
 	imageFileList.close();
 }
