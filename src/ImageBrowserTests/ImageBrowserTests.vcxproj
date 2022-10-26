@@ -31,16 +31,16 @@
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="..\..\..\..\wxWidgets-3.1.4\wxwidgets.props" />
+    <Import Project="$(WXWIN)\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="..\..\..\..\wxWidgets-3.1.4\wxwidgets.props" />
+    <Import Project="$(WXWIN)\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="..\..\..\..\wxWidgets-3.1.4\wxwidgets.props" />
+    <Import Project="$(WXWIN)\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="..\..\..\..\wxWidgets-3.1.4\wxwidgets.props" />
+    <Import Project="$(WXWIN)\wxwidgets.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

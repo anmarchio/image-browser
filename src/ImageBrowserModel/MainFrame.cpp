@@ -73,7 +73,7 @@ MainFrame::MainFrame(const wxString& title)
 	sizer->Add(saveFilePath, wxSizerFlags().Left());
 
 	// Checkbox for deeply scanning images (with increased scan time and memory use)
-	checkImageSizeAndDepthChkbx = new wxCheckBox(this, wxID_ANY, "Check each image for details? (slower scan, higher memory use)");	
+	checkImageSizeAndDepthChkbx = new wxCheckBox(this, wxID_ANY, "Read image details? (slower scan, high memory usage)");	
 	sizer->Add(checkImageSizeAndDepthChkbx, wxSizerFlags().Left());
 
 	// Start browsing button
@@ -184,10 +184,10 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	// String: width;height;depth\n
 	wxString result;
 	// Initialize variables
-	cv::Mat src;
-	cv::Mat dst;
-	cv::Mat black;
-	cv::Mat white;
+	//cv::Mat src;
+	//cv::Mat dst;
+	//cv::Mat black;
+	//cv::Mat white;
 	int countBlacks;
 	int countWhites;
 	int numberOfRows;
@@ -195,28 +195,31 @@ wxString MainFrame::checkImageSizeAndDepth(std::experimental::filesystem::path s
 	int depth;
 	try {
 		// Load and read image
-		src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
+		cv::Mat src = cv::imread(source.generic_string(), cv::IMREAD_ANYCOLOR);
+		cv::Mat dst;
 		if (src.depth() != CV_8U)
 			cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
 		else
-			dst = src;
+			dst = src;		
 		
 		//cv::imshow("dst", dst);
 		//int v = cv::waitKey(0);
 		result = wxString::Format(wxT("%i"), src.cols) + wxString(";") + wxString::Format(wxT("%i"), src.rows) + wxString(";");
- 				
+
+		cv::Mat black;
 		cv::threshold(dst, black, 254, 255, cv::THRESH_BINARY_INV);
 		countBlacks = cv::countNonZero(black);
+		black.release();
 	
 		//cv::imshow("black", black);
 		//int v = cv::waitKey(0);
-	
+
+		cv::Mat white;
 	 	cv::threshold(dst, white, 254, 255, cv::THRESH_BINARY);
 		dst.release();
-		countWhites = cv::countNonZero(white);
-		
-		black.release();
+		countWhites = cv::countNonZero(white);		
 		white.release();
+
 		//cv::imshow("white", white);
 		//int l = cv::waitKey(0);
 
@@ -289,20 +292,20 @@ std::string insertFooter() {
 int ITERATION = 0;
 int MainFrame::TraverseDirTree(std::experimental::filesystem::path source, std::experimental::filesystem::path target, bool isCheckImageSizeAndDepth)
 {
-	if (ITERATION % 1000 == 0) {
-		resultText->AppendText("Scanned " + std::to_string(ITERATION) + " images ...\n");
-	}
-	
-	/* 	  
-	 * ---------
-	 * Uncomment for debugging purposes	
-	 * ---------
-	*/
-	//if (ITERATION > 3000)
-	//	std::cout << "BREAKPOINT AT ITERATIONS: " << ITERATION;
-	
+
 	for (const auto & file : directory_iterator(source))
 	{
+		if (ITERATION % 1000 == 0) {
+			resultText->AppendText("Scanned " + std::to_string(ITERATION) + " images ...\n");
+		}
+		/*
+		 * ---------
+		 * Uncomment for debugging purposes
+		 * ---------
+		*/
+		if (ITERATION > 5000)
+			std::cout << "BREAKPOINT AT ITERATION: " << ITERATION;
+
 		if (std::experimental::filesystem::is_directory(file))
 		{
 			MainFrame::TraverseDirTree(file.path(), target, isCheckImageSizeAndDepth);
